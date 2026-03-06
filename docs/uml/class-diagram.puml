@@ -1,0 +1,48 @@
+@startuml ClassDiagram
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+
+enum JobStatus {
+  queued
+  processing
+  done
+  failed
+  expired
+}
+
+enum TargetFormat {
+  webp
+  pdf
+  json
+}
+
+class ConversionJob {
+  + id : String
+  + createdAt : DateTime
+  + updatedAt : DateTime
+  + status : JobStatus
+  + sourceFilename : String
+  + sourceStorageKey : String
+  + sourceMime : String
+  + sourceSize : Int
+  + targetFormat : TargetFormat
+  + params : Json?
+  + resultStorageKey : String?
+  + resultMime : String?
+  + resultSize : Int?
+  + errorCode : String?
+  + errorMessage : String?
+  + accessToken : String
+  + expiresAt : DateTime
+}
+
+ConversionJob --> JobStatus : status
+ConversionJob --> TargetFormat : targetFormat
+
+note right of ConversionJob
+  Таблиця conversion_jobs (MySQL)
+  Індекси: expiresAt, status, createdAt
+end note
+
+@enduml

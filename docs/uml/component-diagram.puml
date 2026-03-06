@@ -1,0 +1,100 @@
+@startuml ComponentDiagram
+!theme plain
+
+actor "Користувач" as user
+
+package "1)  (Frontend)" {
+  [UI Next.js App Router\n(React + Tailwind CSS)] as web
+  [Клієнтський API-адаптер\n(fetch + polling)] as clientApi
+  [Резолвер URL файлів\n(локальні/CDN шляхи)] as pathResolver
+}
+
+package "2) Шар API (Next.js API Routes)" {
+  [POST /api/jobs] as postJobs
+  [GET /api/jobs/:id] as getStatus
+  [GET /api/jobs/:id/download] as getDownload
+  [DELETE /api/jobs/:id] as deleteJob
+  [Валідація вхідних даних\n(тип + розмір)] as inputValidation
+  [Автентифікація за токеном доступу] as tokenAuth
+  [JSON-серіалізація\nОбробка помилок] as jsonErrors
+}
+
+package "3) Доменний шар (бізнес-логіка)" {
+  [Доменний сервіс задач] as domainService
+  [Правила валідації файлів] as domainValidation
+  [Генератор ключів сховища\n(унікальні імена)] as keyGenerator
+  [Політика статусів задач] as statusPolicy
+}
+
+package "4) Інфраструктурний шар" {
+  [Репозиторій Prisma] as prismaRepo
+  [Шлюз Redis] as redisGateway
+  [Шлюз файлового сховища\n(локальна ФС / S3-сумісне)] as storageGateway
+}
+
+package "5) Шар черги (Redis)" {
+  [Адаптер черги\n(BullMQ або Redis List)] as queueAdapter
+  [Лімітер запитів] as rateLimiter
+}
+
+package "6) Шар воркера" {
+  [Процес воркера\n(Node.js)] as worker
+  [Адаптери конвертації\n(Sharp / Puppeteer / csv-parse)] as converters
+  [Повторні спроби + логування] as workerOps
+}
+
+database "7) База даних MySQL" as mysql {
+  [conversion_jobs\n(індекси: status, createdAt, expiresAt)] as conversionJobs
+}
+
+storage "8) Файлове сховище" as storage {
+  [Вхідні/вихідні об'єкти\n(локальний диск або S3)] as storageObjects
+}
+
+user --> web : завантаження / перевірка статусу / отримання результату
+web --> clientApi
+clientApi --> postJobs
+clientApi --> getStatus
+clientApi --> getDownload
+clientApi --> deleteJob
+web --> pathResolver
+
+postJobs --> inputValidation
+postJobs --> tokenAuth
+getStatus --> tokenAuth
+getDownload --> tokenAuth
+postJobs --> jsonErrors
+getStatus --> jsonErrors
+getDownload --> jsonErrors
+deleteJob --> jsonErrors
+
+postJobs --> domainService
+getStatus --> domainService
+getDownload --> domainService
+deleteJob --> domainService
+
+domainService --> domainValidation
+domainService --> keyGenerator
+domainService --> statusPolicy
+domainService --> prismaRepo
+domainService --> redisGateway
+domainService --> storageGateway
+
+prismaRepo --> mysql : Prisma ORM
+redisGateway --> queueAdapter
+redisGateway --> rateLimiter
+storageGateway --> storageObjects
+
+queueAdapter --> worker : асинхронні задачі
+worker --> converters
+worker --> workerOps
+worker --> prismaRepo : оновлення статусів
+worker --> storageGateway : читання/запис файлів
+worker --> queueAdapter : підтвердження/retry
+
+note bottom of domainService
+  Доменний шар ізольований від фреймворку:
+  бізнес-правила стабільні при зміні технологій.
+end note
+
+@enduml

@@ -1,0 +1,59 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: conversion
+      MYSQL_USER: conversion
+      MYSQL_PASSWORD: conversion
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://conversion:conversion@db:3306/conversion
+      REDIS_URL: redis://redis:6379
+      STORAGE_DRIVER: local
+      STORAGE_PATH: /app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - storage_data:/app/storage
+
+  worker:
+    build: .
+    command: npm run worker
+    environment:
+      DATABASE_URL: mysql://conversion:conversion@db:3306/conversion
+      REDIS_URL: redis://redis:6379
+      STORAGE_DRIVER: local
+      STORAGE_PATH: /app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - storage_data:/app/storage
+
+volumes:
+  mysql_data:
+  storage_data:

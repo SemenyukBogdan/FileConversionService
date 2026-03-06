@@ -1,0 +1,45 @@
+@startuml DeploymentDiagram
+!theme plain
+
+actor "User" as user
+
+node "Docker Host" {
+
+  node "Контейнер web" as web {
+    component [Next.js\n:3000] as nextjs
+  }
+
+  node "Контейнер worker" as worker {
+    component [Node.js\nBullMQ Worker] as workerProc
+  }
+
+  node "Контейнер db" as db {
+    database "MySQL 8\n:3306" as mysql
+  }
+
+  node "Контейнер redis" as redis {
+    component "Redis 7\n:6379" as redisSvc
+  }
+
+  artifact "Volume storage_data\n(local storage)" as volStorage
+  artifact "Volume mysql_data" as volMysql
+}
+
+cloud "S3-compatible storage\n(optional)" as s3
+cloud "CDN (optional)" as cdn
+
+user --> nextjs : HTTPS
+web --> mysql : DATABASE_URL
+web --> redisSvc : REDIS_URL
+web --> volStorage : STORAGE_PATH (local)
+web --> s3 : S3_* envs (optional)
+web --> cdn : CDN_BASE_URL (optional)
+
+worker --> mysql : DATABASE_URL
+worker --> redisSvc : REDIS_URL
+worker --> volStorage : STORAGE_PATH (local)
+worker --> s3 : S3_* envs (optional)
+
+db --> volMysql : дані БД
+
+@enduml

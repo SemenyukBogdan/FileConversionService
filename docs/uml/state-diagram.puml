@@ -1,0 +1,23 @@
+@startuml StateDiagram
+!theme plain
+
+[*] --> queued : POST /api/jobs
+
+state queued
+state processing : Worker взяв задачу
+state done : Результат збережено
+state failed : Помилка конвертації
+state expired : TTL або DELETE
+
+queued --> processing : Worker починає обробку
+processing --> done : Успішна конвертація
+processing --> failed : Помилка
+done --> expired : Час минув або DELETE
+failed --> expired : Час минув або DELETE
+
+note right of expired
+  Cleanup кожні 5 хв
+  видаляє файли з storage
+end note
+
+@enduml

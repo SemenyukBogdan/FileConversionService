@@ -1,0 +1,33 @@
+@startuml SequenceStatusDownload
+!theme plain
+
+actor User as user
+participant "Browser" as browser
+participant "Next.js API\nGET /api/jobs/{id}" as apiStatus
+participant "Next.js API\nGET .../download" as apiDownload
+participant "Prisma\n(MySQL)" as db
+participant "Storage" as storage
+
+== Polling статусу (кожні 2.5 сек) ==
+user -> browser : Відкрито /jobs/{id}?token=...
+loop Кожні 2.5 сек
+  browser -> apiStatus : GET /api/jobs/{id}?token=...
+  apiStatus -> db : findUnique(jobId)
+  db --> apiStatus : ConversionJob
+  apiStatus -> apiStatus : verifyToken(token)
+  apiStatus --> browser : 200 { status, error?, ... }
+  browser --> user : Відображення статусу
+end
+
+== Завантаження (коли status = done) ==
+user -> browser : Клік Download
+browser -> apiDownload : GET /api/jobs/{id}/download?token=...
+apiDownload -> db : findUnique(jobId)
+db --> apiDownload : ConversionJob
+apiDownload -> apiDownload : verifyToken, status = done?
+apiDownload -> storage : get(resultStorageKey)
+storage --> apiDownload : buffer
+apiDownload --> browser : 200 stream (Content-Disposition)
+browser --> user : Збереження файлу
+
+@enduml

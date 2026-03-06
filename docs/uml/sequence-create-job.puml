@@ -1,0 +1,42 @@
+@startuml SequenceCreateJob
+!theme plain
+
+actor User as user
+participant "Browser" as browser
+participant "Next.js API\nPOST /api/jobs" as api
+participant "Rate Limiter\n(Redis)" as rl
+participant "Storage" as storage
+participant "Prisma\n(MySQL)" as db
+participant "BullMQ Queue\n(Redis)" as queue
+participant "Worker" as worker
+
+user -> browser : Завантажити файл, обрати формат
+browser -> api : POST multipart (file, targetFormat)
+
+api -> rl : checkRateLimit(IP)
+alt Ліміт перевищено
+  rl --> api : allowed = false
+  api --> browser : 429
+else Дозволено
+  rl --> api : allowed = true
+  api -> api : Валідація MIME, розміру
+  api -> storage : put(sourceStorageKey, buffer)
+  storage --> api : ok
+  api -> db : create ConversionJob (status=queued)
+  db --> api : ok
+  api -> queue : addJobToQueue(payload)
+  queue --> api : ok
+  api --> browser : 201 { jobId, accessToken, expiresAt }
+  browser --> user : Редірект на /jobs/{id}
+end
+
+... Worker (асинхронно) ...
+queue -> worker : Job payload
+worker -> db : update status = processing
+worker -> storage : get(sourceStorageKey)
+storage --> worker : buffer
+worker -> worker : convert (Sharp / md-to-pdf / csv-parse)
+worker -> storage : put(resultStorageKey, buffer)
+worker -> db : update status = done, resultStorageKey
+
+@enduml
