@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import {
+  createSession,
+  getSessionCookieOptions,
+  SESSION_COOKIE,
+} from "@/lib/auth";
 
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD ?? "demo123";
-const SESSION_COOKIE = "session";
 
 export async function POST(request: Request) {
   const { password } = (await request.json()) as { password?: string };
@@ -11,14 +15,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 
+  const token = createSession();
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, "authenticated", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24, // 24h
-    path: "/",
-  });
+  cookieStore.set(SESSION_COOKIE, token, getSessionCookieOptions());
 
   return NextResponse.json({ ok: true });
 }

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "worker": "tsx worker/index.ts",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:acceptance": "vitest run tests/acceptance.test.ts"
   },
   "dependencies": {
@@ -37,6 +38,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "@vitest/coverage-v8": "^4.0.18"
   }
 }

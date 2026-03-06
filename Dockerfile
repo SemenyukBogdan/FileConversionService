@@ -26,7 +26,4 @@ RUN npm run build
 ENV NODE_ENV=production
 EXPOSE 3000
 
-COPY scripts/start.sh /app/scripts/
-RUN chmod +x /app/scripts/start.sh
-
-CMD ["/app/scripts/start.sh"]
+CMD ["node", "scripts/start.js"]

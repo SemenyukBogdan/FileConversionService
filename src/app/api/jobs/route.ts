@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { addJobToQueue } from "@/lib/queue";
 import { getStorage, generateStorageKey } from "@/lib/storage";
-import { checkRateLimit } from "@/lib/rate-limit";
 import {
   validateFileForFormat,
   sanitizeFilename,
@@ -25,6 +23,7 @@ function getClientIp(request: NextRequest): string {
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request);
+    const { checkRateLimit } = await import("@/lib/rate-limit");
     const { allowed } = await checkRateLimit(ip);
     if (!allowed) {
       return NextResponse.json(
@@ -98,6 +97,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const { addJobToQueue } = await import("@/lib/queue");
     await addJobToQueue({
       jobId,
       sourceStorageKey,

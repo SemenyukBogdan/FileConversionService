@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ interface JobData {
   error: { code?: string; message: string } | null;
 }
 
-export default function JobPage() {
+function JobPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const jobId = params.jobId as string;
@@ -162,5 +162,13 @@ export default function JobPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function JobPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-16">Loading...</div>}>
+      <JobPageContent />
+    </Suspense>
   );
 }
