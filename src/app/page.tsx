@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -48,6 +49,17 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <main className="mx-auto max-w-2xl px-6 py-16">
+        <nav className="mb-8 flex gap-4 text-sm">
+          <Link href="/about" className="text-zinc-600 underline dark:text-zinc-400">
+            About
+          </Link>
+          <Link href="/dashboard" className="text-zinc-600 underline dark:text-zinc-400">
+            Dashboard
+          </Link>
+          <Link href="/login" className="text-zinc-600 underline dark:text-zinc-400">
+            Sign in
+          </Link>
+        </nav>
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
           File Conversion Service
         </h1>

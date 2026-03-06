@@ -2,9 +2,11 @@ FROM node:20-bookworm-slim
 
 # Chromium deps for md-to-pdf (Puppeteer)
 RUN apt-get update && apt-get install -y \
+    ca-certificates \
     chromium \
     fonts-liberation \
     libnss3 libxss1 libasound2 libatk-bridge2.0-0 libgtk-3-0 libgbm1 \
+    openssl \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
