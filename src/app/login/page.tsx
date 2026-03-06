@@ -41,61 +41,78 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <main className="mx-auto max-w-md px-6 py-16">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-          Sign in
-        </h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Demo: password is <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-700">demo123</code>
-        </p>
+    <main className="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-md flex-col items-center justify-center px-6 py-12">
+      <div className="w-full">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: "var(--foreground)" }}>
+            Welcome back
+          </h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
+            Sign in to access your dashboard
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              placeholder="demo123"
-            />
-          </div>
-
-          {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-              {error}
+        <div className="card p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-2 block text-sm font-medium"
+                style={{ color: "var(--foreground)" }}
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+                placeholder="Enter your password"
+              />
+              <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
+                Demo: <code className="rounded bg-[var(--muted-bg)] px-1.5 py-0.5 font-mono text-[11px]">demo123</code>
+              </p>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-zinc-900 px-4 py-3 font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+            {error && (
+              <div
+                className="rounded-[var(--radius-md)] p-3 text-sm"
+                style={{ background: "var(--error-bg)", color: "var(--error)" }}
+              >
+                {error}
+              </div>
+            )}
+
+            <button type="submit" disabled={loading} className="btn-primary w-full">
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-8 text-center">
+          <Link
+            href="/"
+            className="text-sm font-medium transition-colors hover:opacity-80"
+            style={{ color: "var(--muted)" }}
           >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-zinc-500">
-          <Link href="/" className="underline hover:text-zinc-700 dark:hover:text-zinc-300">
-            Back to home
+            ← Back to home
           </Link>
         </p>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-16">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center" style={{ color: "var(--muted)" }}>
+          Loading...
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

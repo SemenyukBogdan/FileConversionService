@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Header } from "@/components/Header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "File Conversion Service",
-  description: "Asynchronous file conversion: PNG/JPG to WebP, Markdown to PDF, CSV to JSON",
+  description: "Fast, easy file conversion in your browser. PNG/JPG to WebP, Markdown to PDF, CSV to JSON.",
 };
 
 export default function RootLayout({
@@ -25,8 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
+        style={{ background: "var(--background)" }}
       >
+        <Header />
         {children}
       </body>
     </html>

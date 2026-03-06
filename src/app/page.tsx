@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { UploadZone } from "@/components/UploadZone";
+import { FormatCard } from "@/components/FormatCard";
 
 export default function Home() {
   const router = useRouter();
@@ -10,6 +11,12 @@ export default function Home() {
   const [targetFormat, setTargetFormat] = useState<"webp" | "pdf" | "json">("webp");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const acceptMap = {
+    webp: ".png,.jpg,.jpeg",
+    pdf: ".md,.markdown,.txt",
+    json: ".csv,.txt",
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,80 +54,82 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <main className="mx-auto max-w-2xl px-6 py-16">
-        <nav className="mb-8 flex gap-4 text-sm">
-          <Link href="/about" className="text-zinc-600 underline dark:text-zinc-400">
-            About
-          </Link>
-          <Link href="/dashboard" className="text-zinc-600 underline dark:text-zinc-400">
-            Dashboard
-          </Link>
-          <Link href="/login" className="text-zinc-600 underline dark:text-zinc-400">
-            Sign in
-          </Link>
-        </nav>
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-          File Conversion Service
+    <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
+      {/* Hero */}
+      <div className="mb-12 text-center">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: "var(--foreground)" }}>
+          Convert files in seconds
         </h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Upload a file and convert it to WebP, PDF, or JSON. Processing runs asynchronously.
+        <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>
+          Upload → Convert → Download. Fast, secure, and runs in your browser.
         </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="mt-10 space-y-6">
+      {/* Upload flow card */}
+      <div className="card p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <div>
-            <label
-              htmlFor="file"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              File
+            <label className="mb-3 block text-sm font-medium" style={{ color: "var(--foreground)" }}>
+              1. Choose your file
             </label>
-            <input
-              id="file"
-              type="file"
-              accept=".png,.jpg,.jpeg,.md,.csv,.txt"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="mt-2 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            <UploadZone
+              file={file}
+              onFileChange={(f) => {
+                setFile(f);
+                setError(null);
+              }}
+              accept={acceptMap[targetFormat]}
+              maxSizeMB={25}
             />
-            <p className="mt-1 text-xs text-zinc-500">
-              PNG/JPG for WebP; Markdown for PDF; CSV for JSON. Max 25MB.
-            </p>
           </div>
 
           <div>
-            <label
-              htmlFor="format"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Target format
+            <label className="mb-3 block text-sm font-medium" style={{ color: "var(--foreground)" }}>
+              2. Select target format
             </label>
-            <select
-              id="format"
-              value={targetFormat}
-              onChange={(e) => setTargetFormat(e.target.value as "webp" | "pdf" | "json")}
-              className="mt-2 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            >
-              <option value="webp">WebP (from PNG/JPG)</option>
-              <option value="pdf">PDF (from Markdown)</option>
-              <option value="json">JSON (from CSV)</option>
-            </select>
+            <FormatCard value={targetFormat} onChange={setTargetFormat} />
           </div>
 
           {error && (
-            <div className="rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            <div
+              className="rounded-[var(--radius-md)] p-4 text-sm"
+              style={{ background: "var(--error-bg)", color: "var(--error)" }}
+            >
               {error}
             </div>
           )}
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-zinc-900 px-4 py-3 font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+            disabled={loading || !file}
+            className="btn-primary w-full py-3.5 text-base"
           >
-            {loading ? "Creating..." : "Convert"}
+            {loading ? "Creating conversion..." : "Convert now"}
           </button>
         </form>
-      </main>
-    </div>
+      </div>
+
+      {/* Trust elements */}
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm" style={{ color: "var(--muted)" }}>
+        <span className="flex items-center gap-1.5">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Secure processing
+        </span>
+        <span className="flex items-center gap-1.5">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Max 25MB per file
+        </span>
+        <span className="flex items-center gap-1.5">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Async conversion
+        </span>
+      </div>
+    </main>
   );
 }

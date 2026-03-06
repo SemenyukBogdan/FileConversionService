@@ -1,8 +1,31 @@
 @import "tailwindcss";
 
+/* Design system tokens - modern SaaS */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #18181b;
+  --muted: #71717a;
+  --muted-bg: #f4f4f5;
+  --border: #e4e4e7;
+  --border-hover: #d4d4d8;
+  --card-bg: #ffffff;
+  --card-border: #e4e4e7;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --warning: #ca8a04;
+  --warning-bg: #fef9c3;
+  --error: #dc2626;
+  --error-bg: #fee2e2;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
 @theme inline {
@@ -12,15 +35,64 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Button primary */
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-[var(--radius-md)] px-6 py-3 text-sm font-semibold text-white transition-all duration-200;
+  background: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-md);
+}
+.btn-primary:disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
+/* Button secondary */
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-[var(--radius-md)] border px-5 py-2.5 text-sm font-medium transition-colors;
+  border-color: var(--border);
+  color: var(--foreground);
+}
+.btn-secondary:hover {
+  background: var(--muted-bg);
+  border-color: var(--border-hover);
+}
+
+/* Card */
+.card {
+  @apply rounded-[var(--radius-lg)] border transition-shadow;
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: var(--shadow-sm);
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Input */
+.input {
+  @apply block w-full rounded-[var(--radius-md)] border px-4 py-2.5 text-[15px] transition-colors;
+  border-color: var(--border);
+  background: var(--card-bg);
+}
+.input:focus {
+  @apply outline-none ring-2 ring-offset-1;
+  --tw-ring-color: var(--primary);
+}
+.input::placeholder {
+  color: var(--muted);
+}
+
+/* Badge */
+.badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
 }

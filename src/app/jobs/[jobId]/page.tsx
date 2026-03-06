@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { StatusBadge } from "@/components/StatusBadge";
 
 type JobStatus = "queued" | "processing" | "done" | "failed" | "expired";
 
@@ -52,7 +53,6 @@ function JobPageContent() {
     }
 
     fetchStatus();
-
     const interval = setInterval(fetchStatus, 2500);
     return () => clearInterval(interval);
   }, [jobId, token]);
@@ -65,86 +65,114 @@ function JobPageContent() {
 
   if (!token || !jobId) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
-        <p className="text-red-600 dark:text-red-400">Missing job ID or token.</p>
-        <Link href="/" className="mt-4 inline-block text-zinc-600 underline dark:text-zinc-400">
-          Back to upload
-        </Link>
-      </div>
+      <main className="mx-auto max-w-2xl px-6 py-12">
+        <div className="card p-6 sm:p-8">
+          <p className="font-medium" style={{ color: "var(--error)" }}>Missing job ID or token.</p>
+          <Link href="/" className="btn-secondary mt-4 inline-block">
+            Back to convert
+          </Link>
+        </div>
+      </main>
     );
   }
 
   if (fetchError) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
-        <p className="text-red-600 dark:text-red-400">{fetchError}</p>
-        <Link href="/" className="mt-4 inline-block text-zinc-600 underline dark:text-zinc-400">
-          Back to upload
-        </Link>
-      </div>
+      <main className="mx-auto max-w-2xl px-6 py-12">
+        <div className="card p-6 sm:p-8">
+          <p className="font-medium" style={{ color: "var(--error)" }}>{fetchError}</p>
+          <Link href="/" className="btn-secondary mt-4 inline-block">
+            Back to convert
+          </Link>
+        </div>
+      </main>
     );
   }
 
   if (loading && !job) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
-        <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
-      </div>
+      <main className="mx-auto max-w-2xl px-6 py-12">
+        <div className="card flex flex-col items-center justify-center p-12">
+          <svg className="h-10 w-10 animate-spin" style={{ color: "var(--muted)" }} fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <p className="mt-4 font-medium" style={{ color: "var(--foreground)" }}>
+            Loading conversion...
+          </p>
+        </div>
+      </main>
     );
   }
 
-  if (!job) {
-    return null;
-  }
+  if (!job) return null;
 
-  const statusLabels: Record<JobStatus, string> = {
-    queued: "Queued",
-    processing: "Processing",
-    done: "Done",
-    failed: "Failed",
-    expired: "Expired",
-  };
+  const isProcessing = job.status === "queued" || job.status === "processing";
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <main className="mx-auto max-w-2xl px-6 py-16">
-        <Link href="/" className="text-zinc-600 underline dark:text-zinc-400">
-          Back to upload
-        </Link>
+    <main className="mx-auto max-w-2xl px-6 py-12">
+      <Link
+        href="/"
+        className="mb-8 inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
+        style={{ color: "var(--muted)" }}
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to convert
+      </Link>
 
-        <div className="mt-8 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {job.sourceFilename}
-          </h1>
-          <p className="mt-2 text-sm text-zinc-500">
-            Target: {job.targetFormat.toUpperCase()} • Created:{" "}
-            {new Date(job.createdAt).toLocaleString()}
-          </p>
-
-          <div className="mt-6">
-            <span
-              className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${
-                job.status === "done"
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                  : job.status === "failed"
-                    ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                    : job.status === "expired"
-                      ? "bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400"
-                      : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-              }`}
+      <div className="card overflow-hidden p-0">
+        {/* Status header */}
+        <div
+          className="flex items-center justify-between border-b px-6 py-4"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="rounded-[var(--radius-md)] p-2"
+              style={{ background: "var(--muted-bg)" }}
             >
-              {statusLabels[job.status]}
-            </span>
+              <svg className="h-5 w-5" style={{ color: "var(--muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="font-semibold" style={{ color: "var(--foreground)" }}>
+                {job.sourceFilename}
+              </h1>
+              <p className="text-sm" style={{ color: "var(--muted)" }}>
+                → {job.targetFormat.toUpperCase()} • {new Date(job.createdAt).toLocaleString()}
+              </p>
+            </div>
           </div>
+          <StatusBadge status={job.status} />
+        </div>
+
+        <div className="p-6">
+          {isProcessing && (
+            <div className="mb-6 flex items-center gap-3 rounded-[var(--radius-md)] p-4" style={{ background: "var(--muted-bg)" }}>
+              <svg className="h-5 w-5 animate-spin" style={{ color: "var(--primary)" }} fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p className="text-sm" style={{ color: "var(--muted)" }}>
+                Your file is being converted. This page updates automatically.
+              </p>
+            </div>
+          )}
 
           {job.status === "failed" && job.error && (
-            <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            <div
+              className="mb-6 rounded-[var(--radius-md)] p-4 text-sm"
+              style={{ background: "var(--error-bg)", color: "var(--error)" }}
+            >
               {job.error.message}
             </div>
           )}
 
           {job.status === "expired" && (
-            <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+            <p className="mb-6 text-sm" style={{ color: "var(--muted)" }}>
               File has been deleted. TTL expired.
             </p>
           )}
@@ -154,20 +182,31 @@ function JobPageContent() {
               href={`/api/jobs/${jobId}/download?token=${encodeURIComponent(token)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-block rounded-lg bg-zinc-900 px-4 py-3 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+              className="btn-primary inline-flex w-full sm:w-auto"
             >
+              <svg className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
               Download
             </a>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
 
 export default function JobPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-16">Loading...</div>}>
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-2xl px-6 py-12">
+          <div className="flex items-center justify-center py-16" style={{ color: "var(--muted)" }}>
+            Loading...
+          </div>
+        </main>
+      }
+    >
       <JobPageContent />
     </Suspense>
   );
