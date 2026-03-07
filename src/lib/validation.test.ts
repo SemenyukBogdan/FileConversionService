@@ -7,17 +7,22 @@ import {
 } from "./validation";
 
 describe("sanitizeFilename", () => {
-  it("замінює заборонені символи на _", () => {
-    expect(sanitizeFilename("file name.txt")).toBe("file_name.txt");
+  it("замінює небезпечні символи на _", () => {
+    expect(sanitizeFilename("file/name.txt")).toBe("file_name.txt");
   });
 
-  it("зберігає дозволені символи", () => {
+  it("зберігає кирилицю та латиницю", () => {
+    expect(sanitizeFilename("документ.docx")).toBe("документ.docx");
     expect(sanitizeFilename("file-name_123.pdf")).toBe("file-name_123.pdf");
   });
 
   it("обрізає до 255 символів", () => {
     const long = "a".repeat(300);
     expect(sanitizeFilename(long).length).toBe(255);
+  });
+
+  it("повертає document для порожнього", () => {
+    expect(sanitizeFilename("")).toBe("document");
   });
 });
 

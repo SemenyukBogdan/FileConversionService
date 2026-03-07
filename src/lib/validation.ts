@@ -12,7 +12,12 @@ export function getMaxFileSizeBytes(): number {
 }
 
 export function sanitizeFilename(filename: string): string {
-  return filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 255);
+  const sanitized = filename
+    .replace(/[/\\<>:"|?*\x00-\x1f]/g, "_")
+    .replace(/\.{2,}/g, ".")
+    .trim()
+    .slice(0, 255);
+  return sanitized || "document";
 }
 
 export function validateDocumentConversion(

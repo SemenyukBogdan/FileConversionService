@@ -52,7 +52,8 @@ export async function GET(
   }
 
   const ext = getExtensionForTarget(job.targetFormat);
-  const downloadFilename = job.sourceFilename.replace(/\.[^.]+$/, "") + ext;
+  const baseName = job.sourceFilename.replace(/\.[^.]+$/, "").trim();
+  const downloadFilename = (baseName && !/^_+$/.test(baseName) ? baseName : "document") + ext;
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
