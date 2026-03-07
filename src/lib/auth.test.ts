@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   createSession,
   verifySession,
@@ -7,24 +7,28 @@ import {
 } from "./auth";
 
 describe("auth", () => {
-  it("createSession returns ok", () => {
-    expect(createSession()).toBe("ok");
+  it("createSession returns base64 encoded userId", () => {
+    const token = createSession("user-123");
+    expect(token).toBeTruthy();
+    expect(typeof token).toBe("string");
   });
 
-  it("verifySession returns true for ok", () => {
-    expect(verifySession("ok")).toBe(true);
+  it("verifySession returns userId for valid token", () => {
+    const userId = "550e8400-e29b-41d4-a716-446655440000";
+    const token = createSession(userId);
+    expect(verifySession(token)).toBe(userId);
   });
 
-  it("verifySession returns false for wrong value", () => {
-    expect(verifySession("wrong")).toBe(false);
+  it("verifySession returns null for invalid token", () => {
+    expect(verifySession("invalid")).toBeNull();
   });
 
-  it("verifySession returns false for undefined", () => {
-    expect(verifySession(undefined)).toBe(false);
+  it("verifySession returns null for undefined", () => {
+    expect(verifySession(undefined)).toBeNull();
   });
 
-  it("verifySession returns false for empty string", () => {
-    expect(verifySession("")).toBe(false);
+  it("verifySession returns null for empty string", () => {
+    expect(verifySession("")).toBeNull();
   });
 
   it("SESSION_COOKIE is session", () => {

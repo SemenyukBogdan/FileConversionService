@@ -5,12 +5,10 @@ import { verifySession, SESSION_COOKIE } from "@/lib/auth";
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-
-  if (!token) {
-    return NextResponse.json({ authenticated: false });
-  }
+  const userId = verifySession(token);
 
   return NextResponse.json({
-    authenticated: verifySession(token),
+    authenticated: !!userId,
+    userId: userId ?? undefined,
   });
 }

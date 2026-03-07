@@ -1,14 +1,11 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-function LoginForm() {
+function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const from = searchParams.get("from") ?? "/dashboard";
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,7 +17,7 @@ function LoginForm() {
     setError(null);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -28,12 +25,12 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || "Registration failed");
         setLoading(false);
         return;
       }
 
-      router.push(from);
+      router.push("/dashboard");
       router.refresh();
     } catch {
       setError("Network error");
@@ -46,10 +43,10 @@ function LoginForm() {
       <div className="w-full">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: "var(--foreground)" }}>
-            Welcome back
+            Create an account
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
-            Sign in to access your dashboard
+            Sign up to get started
           </p>
         </div>
 
@@ -87,8 +84,9 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input"
-                placeholder="Enter your password"
+                placeholder="At least 6 characters"
                 required
+                minLength={6}
               />
             </div>
 
@@ -102,15 +100,15 @@ function LoginForm() {
             )}
 
             <button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Creating account..." : "Sign up"}
             </button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-sm" style={{ color: "var(--muted)" }}>
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-medium" style={{ color: "var(--primary)" }}>
-            Sign up
+          Already have an account?{" "}
+          <Link href="/login" className="font-medium" style={{ color: "var(--primary)" }}>
+            Sign in
           </Link>
         </p>
         <p className="mt-4 text-center">
@@ -127,7 +125,7 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <Suspense
       fallback={
@@ -136,7 +134,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginForm />
+      <RegisterForm />
     </Suspense>
   );
 }

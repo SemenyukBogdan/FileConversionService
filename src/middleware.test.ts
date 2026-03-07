@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { NextRequest } from "next/server";
+import { createSession } from "@/lib/auth";
 import { middleware } from "./middleware";
 
 function createRequest(path: string, cookieValue?: string): NextRequest {
@@ -13,7 +14,8 @@ function createRequest(path: string, cookieValue?: string): NextRequest {
 
 describe("middleware", () => {
   it("allows access to dashboard with valid session", () => {
-    const req = createRequest("/dashboard", "ok");
+    const token = createSession("550e8400-e29b-41d4-a716-446655440000");
+    const req = createRequest("/dashboard", token);
     const res = middleware(req);
     expect(res.status).toBe(200);
   });

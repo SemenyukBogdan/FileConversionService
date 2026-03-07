@@ -53,13 +53,18 @@ export function Header() {
               Sign out
             </button>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-[var(--radius-md)] px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
-              style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
-            >
-              Sign in
-            </Link>
+            <>
+              <Link
+                href="/register"
+                className="rounded-[var(--radius-md)] px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
+                style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+              >
+                Sign up
+              </Link>
+              <Link href="/login" className="btn-secondary text-sm">
+                Sign in
+              </Link>
+            </>
           )}
         </nav>
       </div>
