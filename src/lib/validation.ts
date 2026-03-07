@@ -1,6 +1,5 @@
 import { isConversionSupported } from "./conversion-matrix";
 
-// реекспорт для зручності
 export { getSourceFormatFromMime, getExtensionForTarget } from "./conversion-matrix";
 
 export function getMaxFileSizeBytes(): number {
@@ -12,7 +11,6 @@ export function sanitizeFilename(filename: string): string {
   return filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 255);
 }
 
-// валідація пари source->target та розміру
 export function validateDocumentConversion(
   sourceFormat: string,
   targetFormat: string,

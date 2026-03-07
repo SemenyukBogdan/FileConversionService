@@ -10,7 +10,9 @@
     "worker": "tsx worker/index.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:acceptance": "vitest run tests/acceptance.test.ts"
+    "test:acceptance": "vitest run tests/acceptance.test.ts",
+    "db:migrate": "npx prisma@6 migrate deploy",
+    "db:generate": "npx prisma@6 generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

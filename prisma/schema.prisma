@@ -28,12 +28,6 @@ enum JobStatus {
   expired
 }
 
-enum TargetFormat {
-  webp
-  pdf
-  json
-}
-
 model ConversionJob {
   id                 String       @id @default(uuid())
   createdAt          DateTime     @default(now())
@@ -43,7 +37,8 @@ model ConversionJob {
   sourceStorageKey   String
   sourceMime         String
   sourceSize         Int
-  targetFormat       TargetFormat
+  sourceFormat       String       @default("")
+  targetFormat       String
   params             Json?
   resultStorageKey   String?
   resultMime         String?

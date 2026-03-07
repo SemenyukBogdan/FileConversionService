@@ -1,0 +1,2 @@
+ALTER TABLE `ConversionJob` ADD COLUMN `sourceFormat` VARCHAR(191) NOT NULL DEFAULT '';
+ALTER TABLE `ConversionJob` MODIFY COLUMN `targetFormat` VARCHAR(191) NOT NULL;
