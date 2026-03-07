@@ -13,6 +13,7 @@
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
   --primary-foreground: #ffffff;
+  --primary-subtle: rgba(37, 99, 235, 0.08);
   --success: #16a34a;
   --success-bg: #dcfce7;
   --warning: #ca8a04;

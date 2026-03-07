@@ -4,7 +4,7 @@ import Redis from "ioredis";
 import { PrismaClient } from "@prisma/client";
 import path from "path";
 import { promises as fs } from "fs";
-import { getConverter, getExtensionForTarget, FORMAT_TO_MIME } from "../src/lib/conversion-matrix";
+import { getConverter, getExtensionForTarget, getMimeForFormat } from "../src/lib/conversion-matrix";
 import { convertViaLibreOffice } from "./converters/libreoffice";
 import { convertViaPandoc } from "./converters/pandoc";
 import type { ConversionJobPayload } from "../src/lib/queue";
@@ -119,7 +119,7 @@ async function processJob(payload: ConversionJobPayload): Promise<void> {
     const resultKey = sourceStorageKey.replace(/\.[^.]+$/, ext);
     await writeFile(resultKey, outputBuffer);
 
-    const resultMime = FORMAT_TO_MIME[targetFormat.toLowerCase()] ?? "application/octet-stream";
+    const resultMime = getMimeForFormat(targetFormat);
 
     await prisma.conversionJob.update({
       where: { id: jobId },

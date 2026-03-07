@@ -32,7 +32,7 @@ describe("POST /api/jobs", () => {
 
   it("returns 400 when file is missing", async () => {
     const formData = new FormData();
-    formData.append("targetFormat", "webp");
+    formData.append("targetFormat", "pdf");
     const req = new Request("http://localhost/api/jobs", {
       method: "POST",
       body: formData,
@@ -45,7 +45,7 @@ describe("POST /api/jobs", () => {
 
   it("returns 400 when targetFormat is missing", async () => {
     const formData = new FormData();
-    formData.append("file", new Blob(["x"], { type: "image/png" }), "test.png");
+    formData.append("file", new Blob(["# test"], { type: "text/markdown" }), "test.md");
     const req = new Request("http://localhost/api/jobs", {
       method: "POST",
       body: formData,
@@ -56,7 +56,7 @@ describe("POST /api/jobs", () => {
 
   it("returns 400 for invalid targetFormat", async () => {
     const formData = new FormData();
-    formData.append("file", new Blob(["x"], { type: "image/png" }), "test.png");
+    formData.append("file", new Blob(["# test"], { type: "text/markdown" }), "test.md");
     formData.append("targetFormat", "invalid");
     const req = new Request("http://localhost/api/jobs", {
       method: "POST",
@@ -68,10 +68,10 @@ describe("POST /api/jobs", () => {
     expect(data.error).toContain("Allowed");
   });
 
-  it("returns 400 for invalid mime type", async () => {
+  it("returns 400 for unsupported conversion pair", async () => {
     const formData = new FormData();
-    formData.append("file", new Blob(["x"], { type: "text/plain" }), "test.txt");
-    formData.append("targetFormat", "webp");
+    formData.append("file", new Blob(["x"], { type: "application/msword" }), "test.doc");
+    formData.append("targetFormat", "md");
     const req = new Request("http://localhost/api/jobs", {
       method: "POST",
       body: formData,
@@ -85,9 +85,8 @@ describe("POST /api/jobs", () => {
     vi.mocked(checkRateLimit).mockResolvedValue({ allowed: false });
 
     const formData = new FormData();
-    const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    formData.append("file", new Blob([pngHeader], { type: "image/png" }), "test.png");
-    formData.append("targetFormat", "webp");
+    formData.append("file", new Blob(["# test"], { type: "text/markdown" }), "test.md");
+    formData.append("targetFormat", "pdf");
 
     const req = new Request("http://localhost/api/jobs", {
       method: "POST",
@@ -97,13 +96,12 @@ describe("POST /api/jobs", () => {
     expect(res.status).toBe(429);
   });
 
-  it("returns 201 for valid PNG to WebP", async () => {
+  it("returns 201 for valid MD to PDF", async () => {
     mockCreate.mockResolvedValue({});
 
     const formData = new FormData();
-    const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    formData.append("file", new Blob([pngHeader], { type: "image/png" }), "test.png");
-    formData.append("targetFormat", "webp");
+    formData.append("file", new Blob(["# test"], { type: "text/markdown" }), "test.md");
+    formData.append("targetFormat", "pdf");
 
     const req = new Request("http://localhost/api/jobs", {
       method: "POST",

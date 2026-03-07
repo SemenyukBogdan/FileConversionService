@@ -224,6 +224,14 @@ export function getExtensionForTarget(targetFormat: string): string {
 }
 
 /**
+ * Returns MIME type for a format, or application/octet-stream if unknown.
+ */
+export function getMimeForFormat(format: string): string {
+  const f = format.toLowerCase() as DocumentFormat;
+  return FORMAT_TO_MIME[f] ?? "application/octet-stream";
+}
+
+/**
  * Checks if a conversion from source to target is supported.
  */
 export function isConversionSupported(sourceFormat: string, targetFormat: string): boolean {

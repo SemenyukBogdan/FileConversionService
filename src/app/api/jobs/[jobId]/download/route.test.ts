@@ -76,10 +76,10 @@ describe("GET /api/jobs/[jobId]/download", () => {
       id: "abc-123",
       accessToken: "secret",
       status: "done",
-      resultStorageKey: "2025-01/result.webp",
-      resultMime: "image/webp",
-      targetFormat: "webp",
-      sourceFilename: "test.png",
+      resultStorageKey: "2025-01/result.pdf",
+      resultMime: "application/pdf",
+      targetFormat: "pdf",
+      sourceFilename: "test.docx",
     });
     mockGet.mockResolvedValue(buf);
 
@@ -87,7 +87,7 @@ describe("GET /api/jobs/[jobId]/download", () => {
     const res = await GET(req, { params: Promise.resolve({ jobId: "abc-123" }) });
 
     expect(res.status).toBe(200);
-    expect(res.headers.get("Content-Type")).toBe("image/webp");
-    expect(res.headers.get("Content-Disposition")).toContain("test.webp");
+    expect(res.headers.get("Content-Type")).toBe("application/pdf");
+    expect(res.headers.get("Content-Disposition")).toContain("test.pdf");
   });
 });

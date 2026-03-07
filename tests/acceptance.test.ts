@@ -19,7 +19,7 @@ async function createJob(file: Buffer, filename: string, mime: string, targetFor
 describe("Приймальні тести", () => {
   it("invalid target format returns 400", async () => {
     const formData = new FormData();
-    formData.append("file", new Blob(["test"], { type: "image/png" }), "test.png");
+    formData.append("file", new Blob(["# test"], { type: "text/markdown" }), "test.md");
     formData.append("targetFormat", "invalid");
     const res = await fetch(`${BASE}/api/jobs`, { method: "POST", body: formData });
     expect(res.status).toBe(400);
@@ -27,16 +27,14 @@ describe("Приймальні тести", () => {
 
   it("missing file returns 400", async () => {
     const formData = new FormData();
-    formData.append("targetFormat", "webp");
+    formData.append("targetFormat", "pdf");
     const res = await fetch(`${BASE}/api/jobs`, { method: "POST", body: formData });
     expect(res.status).toBe(400);
   });
 
-  it("PNG to WebP creates job and returns 201", async () => {
-    const pngHeader = Buffer.from([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-    ]);
-    const { res, data } = await createJob(pngHeader, "test.png", "image/png", "webp");
+  it("MD to PDF creates job and returns 201", async () => {
+    const mdContent = Buffer.from("# Hello\n\nTest markdown.", "utf-8");
+    const { res, data } = await createJob(mdContent, "test.md", "text/markdown", "pdf");
     expect(res.status).toBe(201);
     expect(data.jobId).toBeDefined();
     expect(data.accessToken).toBeDefined();

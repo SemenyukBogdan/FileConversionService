@@ -39,7 +39,10 @@ export async function convertViaPandoc(
     await new Promise<void>((resolve, reject) => {
       let err = "";
       proc.stderr?.on("data", (d) => { err += d.toString(); });
-      proc.on("close", (code) => (code === 0 ? resolve() : reject(new Error(err || `exit ${code}`)));
+      proc.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(err || "exit " + code));
+      });
       proc.on("error", reject);
     });
 
