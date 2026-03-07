@@ -1,82 +1,78 @@
 import { describe, it, expect } from "vitest";
 import {
   sanitizeFilename,
-  validateFileForFormat,
-  getExtensionForMime,
-  MIME_WHITELIST,
-  EXTENSION_MAP,
+  validateDocumentConversion,
+  getExtensionForTarget,
+  getSourceFormatFromMime,
 } from "./validation";
 
 describe("sanitizeFilename", () => {
-  it("replaces invalid chars with underscore", () => {
+  it("замінює заборонені символи на _", () => {
     expect(sanitizeFilename("file name.txt")).toBe("file_name.txt");
   });
 
-  it("keeps allowed chars", () => {
+  it("зберігає дозволені символи", () => {
     expect(sanitizeFilename("file-name_123.pdf")).toBe("file-name_123.pdf");
   });
 
-  it("truncates to 255 chars", () => {
+  it("обрізає до 255 символів", () => {
     const long = "a".repeat(300);
     expect(sanitizeFilename(long).length).toBe(255);
   });
 });
 
-describe("validateFileForFormat", () => {
-  it("accepts png for webp", () => {
-    expect(validateFileForFormat("image/png", "webp", 1000).valid).toBe(true);
+describe("validateDocumentConversion", () => {
+  it("приймає docx -> pdf", () => {
+    expect(validateDocumentConversion("docx", "pdf", 1000).valid).toBe(true);
   });
 
-  it("accepts jpeg for webp", () => {
-    expect(validateFileForFormat("image/jpeg", "webp", 1000).valid).toBe(true);
+  it("приймає md -> pdf", () => {
+    expect(validateDocumentConversion("md", "pdf", 1000).valid).toBe(true);
   });
 
-  it("rejects wrong mime for webp", () => {
-    const r = validateFileForFormat("text/plain", "webp", 1000);
+  it("відхиляє непідтримувану пару", () => {
+    const r = validateDocumentConversion("doc", "md", 1000);
     expect(r.valid).toBe(false);
-    expect(r.error).toContain("Invalid file type");
+    expect(r.error).toContain("не підтримується");
   });
 
-  it("accepts markdown for pdf", () => {
-    expect(validateFileForFormat("text/markdown", "pdf", 1000).valid).toBe(true);
+  it("відхиляє однакові формати", () => {
+    const r = validateDocumentConversion("pdf", "pdf", 1000);
+    expect(r.valid).toBe(false);
   });
 
-  it("accepts csv for json", () => {
-    expect(validateFileForFormat("text/csv", "json", 1000).valid).toBe(true);
-  });
-
-  it("rejects file too large", () => {
+  it("відхиляє завеликий файл", () => {
     const maxMb = 25;
-    const r = validateFileForFormat("image/png", "webp", (maxMb + 1) * 1024 * 1024);
+    const r = validateDocumentConversion("docx", "pdf", (maxMb + 1) * 1024 * 1024);
     expect(r.valid).toBe(false);
     expect(r.tooLarge).toBe(true);
   });
 });
 
-describe("getExtensionForMime", () => {
-  it("returns .webp for png", () => {
-    expect(getExtensionForMime("image/png", "webp")).toBe(".webp");
+describe("getExtensionForTarget", () => {
+  it("повертає .pdf для pdf", () => {
+    expect(getExtensionForTarget("pdf")).toBe(".pdf");
   });
 
-  it("returns .pdf for markdown", () => {
-    expect(getExtensionForMime("text/markdown", "pdf")).toBe(".pdf");
+  it("повертає .docx для docx", () => {
+    expect(getExtensionForTarget("docx")).toBe(".docx");
   });
 
-  it("returns .json for csv", () => {
-    expect(getExtensionForMime("text/csv", "json")).toBe(".json");
+  it("повертає .md для md", () => {
+    expect(getExtensionForTarget("md")).toBe(".md");
   });
 });
 
-describe("constants", () => {
-  it("MIME_WHITELIST has webp pdf json", () => {
-    expect(MIME_WHITELIST.webp).toContain("image/png");
-    expect(MIME_WHITELIST.pdf).toContain("text/markdown");
-    expect(MIME_WHITELIST.json).toContain("text/csv");
+describe("getSourceFormatFromMime", () => {
+  it("визначає docx з mime", () => {
+    expect(getSourceFormatFromMime("application/vnd.openxmlformats-officedocument.wordprocessingml.document")).toBe("docx");
   });
 
-  it("EXTENSION_MAP has correct extensions", () => {
-    expect(EXTENSION_MAP.webp).toBe(".webp");
-    expect(EXTENSION_MAP.pdf).toBe(".pdf");
-    expect(EXTENSION_MAP.json).toBe(".json");
+  it("визначає pdf з mime", () => {
+    expect(getSourceFormatFromMime("application/pdf")).toBe("pdf");
+  });
+
+  it("повертає null для невідомого mime", () => {
+    expect(getSourceFormatFromMime("application/unknown")).toBe(null);
   });
 });
