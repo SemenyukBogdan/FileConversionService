@@ -4,9 +4,9 @@ import Redis from "ioredis";
 import { PrismaClient } from "@prisma/client";
 import path from "path";
 import { promises as fs } from "fs";
-import { convertToWebp } from "./converters/webp";
-import { convertToPdf } from "./converters/pdf";
-import { convertToJson } from "./converters/json";
+import { getConverter, getExtensionForTarget, FORMAT_TO_MIME } from "../src/lib/conversion-matrix";
+import { convertViaLibreOffice } from "./converters/libreoffice";
+import { convertViaPandoc } from "./converters/pandoc";
 import type { ConversionJobPayload } from "../src/lib/queue";
 
 const QUEUE_NAME = "conversion-jobs";
@@ -68,17 +68,24 @@ async function runCleanup(): Promise<void> {
   }
 }
 
-const MIME_MAP: Record<string, string> = {
-  webp: "image/webp",
-  pdf: "application/pdf",
-  json: "application/json",
-};
-
 async function processJob(payload: ConversionJobPayload): Promise<void> {
-  const { jobId, sourceStorageKey, targetFormat, params } = payload;
+  const { jobId, sourceStorageKey, sourceFormat, targetFormat, params } = payload;
   const startTime = Date.now();
 
-  console.log(`[Worker] Processing job ${jobId} (${targetFormat})`);
+  const converter = getConverter(sourceFormat, targetFormat);
+  if (!converter) {
+    await prisma.conversionJob.update({
+      where: { id: jobId },
+      data: {
+        status: "failed",
+        errorCode: "UNSUPPORTED",
+        errorMessage: `Конвертація ${sourceFormat} → ${targetFormat} не підтримується`,
+      },
+    });
+    return;
+  }
+
+  console.log(`[Worker] ${jobId} ${sourceFormat}→${targetFormat} (${converter})`);
 
   await prisma.conversionJob.update({
     where: { id: jobId },
@@ -100,40 +107,35 @@ async function processJob(payload: ConversionJobPayload): Promise<void> {
 
   try {
     let outputBuffer: Buffer;
-    switch (targetFormat) {
-      case "webp":
-        outputBuffer = await convertToWebp(inputBuffer, params);
-        break;
-      case "pdf":
-        outputBuffer = await convertToPdf(inputBuffer, params);
-        break;
-      case "json":
-        outputBuffer = await convertToJson(inputBuffer, params);
-        break;
-      default:
-        throw new Error(`Unknown format: ${targetFormat}`);
+    if (converter === "libreoffice") {
+      outputBuffer = await convertViaLibreOffice(inputBuffer, sourceFormat, targetFormat);
+    } else if (converter === "pandoc") {
+      outputBuffer = await convertViaPandoc(inputBuffer, sourceFormat, targetFormat);
+    } else {
+      throw new Error("DJVU converter ще не реалізовано");
     }
 
-    const ext = targetFormat === "webp" ? ".webp" : targetFormat === "pdf" ? ".pdf" : ".json";
+    const ext = getExtensionForTarget(targetFormat);
     const resultKey = sourceStorageKey.replace(/\.[^.]+$/, ext);
     await writeFile(resultKey, outputBuffer);
+
+    const resultMime = FORMAT_TO_MIME[targetFormat.toLowerCase()] ?? "application/octet-stream";
 
     await prisma.conversionJob.update({
       where: { id: jobId },
       data: {
         status: "done",
         resultStorageKey: resultKey,
-        resultMime: MIME_MAP[targetFormat],
+        resultMime,
         resultSize: outputBuffer.length,
       },
     });
 
-    const duration = Date.now() - startTime;
-    console.log(`[Worker] Job ${jobId} done in ${duration}ms`);
+    console.log(`[Worker] ${jobId} done in ${Date.now() - startTime}ms`);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     const errorCode = err instanceof Error ? err.name : "CONVERSION_ERROR";
-    console.error(`[Worker] Job ${jobId} failed:`, errorMessage);
+    console.error(`[Worker] ${jobId} failed:`, errorMessage);
 
     await prisma.conversionJob.update({
       where: { id: jobId },

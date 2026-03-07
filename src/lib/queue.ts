@@ -6,7 +6,8 @@ const QUEUE_NAME = "conversion-jobs";
 export interface ConversionJobPayload {
   jobId: string;
   sourceStorageKey: string;
-  targetFormat: "webp" | "pdf" | "json";
+  sourceFormat: string;
+  targetFormat: string;
   params?: Record<string, unknown>;
 }
 
