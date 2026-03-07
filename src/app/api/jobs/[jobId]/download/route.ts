@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStorage } from "@/lib/storage";
+import { getExtensionForTarget } from "@/lib/validation";
 
 function verifyToken(job: { accessToken: string }, token: string | null): boolean {
   return !!token && token === job.accessToken;
@@ -50,7 +51,7 @@ export async function GET(
     return new NextResponse(null, { status: 410 });
   }
 
-  const ext = job.targetFormat === "webp" ? ".webp" : job.targetFormat === "pdf" ? ".pdf" : ".json";
+  const ext = getExtensionForTarget(job.targetFormat);
   const downloadFilename = job.sourceFilename.replace(/\.[^.]+$/, "") + ext;
 
   return new NextResponse(new Uint8Array(buffer), {

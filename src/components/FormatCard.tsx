@@ -1,37 +1,51 @@
 "use client";
 
-type TargetFormat = "webp" | "pdf" | "json";
+import { DOCUMENT_FORMATS, type DocumentFormat } from "@/lib/conversion-matrix";
 
-const FORMATS: { value: TargetFormat; label: string; desc: string; from: string }[] = [
-  { value: "webp", label: "WebP", desc: "Modern image format", from: "PNG, JPG" },
-  { value: "pdf", label: "PDF", desc: "Document format", from: "Markdown" },
-  { value: "json", label: "JSON", desc: "Structured data", from: "CSV" },
-];
+const LABELS: Record<string, string> = {
+  abw: "AbiWord",
+  djvu: "DjVu",
+  doc: "Word 97",
+  docm: "Word (macro)",
+  docx: "Word",
+  dot: "Word template",
+  dotx: "Word template",
+  html: "HTML",
+  lwp: "Lotus",
+  md: "Markdown",
+  odt: "OpenDocument",
+  pdf: "PDF",
+  rst: "reStructuredText",
+  rtf: "RTF",
+  tex: "LaTeX",
+  txt: "Plain text",
+  wpd: "WordPerfect",
+  wps: "Works",
+  zabw: "AbiWord (zip)",
+};
 
 interface FormatCardProps {
-  value: TargetFormat;
-  onChange: (value: TargetFormat) => void;
+  value: DocumentFormat;
+  onChange: (value: DocumentFormat) => void;
 }
 
 export function FormatCard({ value, onChange }: FormatCardProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
-      {FORMATS.map((f) => (
+    <div className="grid gap-2 sm:grid-cols-4 md:grid-cols-5">
+      {DOCUMENT_FORMATS.map((f) => (
         <button
-          key={f.value}
+          key={f}
           type="button"
-          onClick={() => onChange(f.value)}
-          className={`card flex flex-col items-start gap-1 p-4 text-left transition-all ${
-            value === f.value
-              ? "ring-2 ring-[var(--primary)] ring-offset-2"
-              : ""
+          onClick={() => onChange(f)}
+          className={`card flex flex-col items-start gap-0.5 p-3 text-left transition-all ${
+            value === f ? "ring-2 ring-[var(--primary)] ring-offset-2" : ""
           }`}
         >
           <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-            {f.label}
+            {LABELS[f] ?? f.toUpperCase()}
           </span>
           <span className="text-xs" style={{ color: "var(--muted)" }}>
-            {f.desc} • from {f.from}
+            .{f}
           </span>
         </button>
       ))}

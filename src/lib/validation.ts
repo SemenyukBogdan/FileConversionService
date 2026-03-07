@@ -1,6 +1,10 @@
 import { isConversionSupported } from "./conversion-matrix";
 
-export { getSourceFormatFromMime, getExtensionForTarget } from "./conversion-matrix";
+export {
+  getSourceFormatFromMime,
+  getSourceFormatFromExtension,
+  getExtensionForTarget,
+} from "./conversion-matrix";
 
 export function getMaxFileSizeBytes(): number {
   const mb = parseInt(process.env.MAX_FILE_SIZE_MB || "25", 10);

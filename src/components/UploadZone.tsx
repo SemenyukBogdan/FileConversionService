@@ -75,7 +75,7 @@ export function UploadZone({ file, onFileChange, accept, maxSizeMB = 25 }: Uploa
               Drop your file here, or <span className="text-[var(--primary)]">browse</span>
             </p>
             <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-              Max {maxSizeMB}MB • PNG, JPG, MD, CSV, TXT
+              Max {maxSizeMB}MB • documents
             </p>
           </div>
         </div>

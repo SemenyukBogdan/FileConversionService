@@ -1,22 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/UploadZone";
 import { FormatCard } from "@/components/FormatCard";
+import { getAllowedSources } from "@/lib/conversion-matrix";
+import { getExtensionForTarget } from "@/lib/validation";
+import type { DocumentFormat } from "@/lib/conversion-matrix";
 
 export default function Home() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
-  const [targetFormat, setTargetFormat] = useState<"webp" | "pdf" | "json">("webp");
+  const [targetFormat, setTargetFormat] = useState<DocumentFormat>("pdf");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const acceptMap = {
-    webp: ".png,.jpg,.jpeg",
-    pdf: ".md,.markdown,.txt",
-    json: ".csv,.txt",
-  };
+  const accept = useMemo(() => {
+    const sources = getAllowedSources(targetFormat);
+    return sources.map((f) => getExtensionForTarget(f)).join(",");
+  }, [targetFormat]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,7 +57,6 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
-      {/* Hero */}
       <div className="mb-12 text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: "var(--foreground)" }}>
           Convert files in seconds
@@ -65,7 +66,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Upload flow card */}
       <div className="card p-6 sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           <div>
@@ -78,7 +78,7 @@ export default function Home() {
                 setFile(f);
                 setError(null);
               }}
-              accept={acceptMap[targetFormat]}
+              accept={accept}
               maxSizeMB={25}
             />
           </div>
@@ -109,7 +109,6 @@ export default function Home() {
         </form>
       </div>
 
-      {/* Trust elements */}
       <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm" style={{ color: "var(--muted)" }}>
         <span className="flex items-center gap-1.5">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

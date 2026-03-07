@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStorage, generateStorageKey } from "@/lib/storage";
 import {
-  validateFileForFormat,
+  validateDocumentConversion,
   sanitizeFilename,
-  getExtensionForMime,
-  type TargetFormat,
+  getSourceFormatFromMime,
+  getSourceFormatFromExtension,
+  getExtensionForTarget,
 } from "@/lib/validation";
+import { DOCUMENT_FORMATS } from "@/lib/conversion-matrix";
 import { v4 as uuidv4 } from "uuid";
 
-const TARGET_FORMATS: TargetFormat[] = ["webp", "pdf", "json"];
 const TTL_HOURS = parseInt(process.env.TTL_HOURS || "24", 10);
 
 function getClientIp(request: NextRequest): string {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    const targetFormat = formData.get("targetFormat") as string | null;
+    const targetFormat = (formData.get("targetFormat") as string | null)?.trim().toLowerCase();
     const paramsStr = formData.get("params") as string | null;
 
     if (!file || !targetFormat) {
@@ -44,18 +45,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!TARGET_FORMATS.includes(targetFormat as TargetFormat)) {
+    if (!DOCUMENT_FORMATS.includes(targetFormat as (typeof DOCUMENT_FORMATS)[number])) {
       return NextResponse.json(
-        { error: `Invalid targetFormat. Allowed: ${TARGET_FORMATS.join(", ")}` },
+        { error: `Invalid targetFormat. Allowed: ${DOCUMENT_FORMATS.join(", ")}` },
         { status: 400 }
       );
     }
 
-    const validation = validateFileForFormat(
-      file.type,
-      targetFormat as TargetFormat,
-      file.size
-    );
+    const sourceFormat =
+      getSourceFormatFromMime(file.type) ?? getSourceFormatFromExtension(file.name);
+    if (!sourceFormat) {
+      return NextResponse.json(
+        { error: `Невідомий формат файлу. MIME: ${file.type}` },
+        { status: 400 }
+      );
+    }
+
+    const validation = validateDocumentConversion(sourceFormat, targetFormat, file.size);
     if (!validation.valid) {
       return NextResponse.json(
         { error: validation.error },
@@ -65,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const storage = getStorage();
-    const ext = getExtensionForMime(file.type, targetFormat as TargetFormat);
+    const ext = getExtensionForTarget(sourceFormat);
     const sourceStorageKey = generateStorageKey(ext);
     await storage.put(sourceStorageKey, buffer);
 
@@ -90,7 +96,8 @@ export async function POST(request: NextRequest) {
         sourceStorageKey,
         sourceMime: file.type,
         sourceSize: file.size,
-        targetFormat: targetFormat as "webp" | "pdf" | "json",
+        sourceFormat,
+        targetFormat,
         params: (params ?? undefined) as object | undefined,
         accessToken,
         expiresAt,
@@ -101,7 +108,8 @@ export async function POST(request: NextRequest) {
     await addJobToQueue({
       jobId,
       sourceStorageKey,
-      targetFormat: targetFormat as "webp" | "pdf" | "json",
+      sourceFormat,
+      targetFormat,
       params,
     });
 
