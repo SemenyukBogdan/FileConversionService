@@ -28,15 +28,16 @@ function JobPageContent() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!jobId || !token) {
-      setFetchError("Missing job ID or token");
+    if (!jobId) {
+      setFetchError("Missing job ID");
       setLoading(false);
       return;
     }
 
     async function fetchStatus() {
       try {
-        const res = await fetch(`/api/jobs/${jobId}?token=${encodeURIComponent(token!)}`);
+        const query = token ? `?token=${encodeURIComponent(token)}` : "";
+        const res = await fetch(`/api/jobs/${jobId}${query}`);
         const data = await res.json();
 
         if (!res.ok) {
@@ -57,17 +58,11 @@ function JobPageContent() {
     return () => clearInterval(interval);
   }, [jobId, token]);
 
-  useEffect(() => {
-    if (job?.status === "done" || job?.status === "failed" || job?.status === "expired") {
-      setLoading(false);
-    }
-  }, [job?.status]);
-
-  if (!token || !jobId) {
+  if (!jobId) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-12">
         <div className="card p-6 sm:p-8">
-          <p className="font-medium" style={{ color: "var(--error)" }}>Missing job ID or token.</p>
+          <p className="font-medium" style={{ color: "var(--error)" }}>Missing job ID.</p>
           <Link href="/" className="btn-secondary mt-4 inline-block">
             Back to convert
           </Link>
@@ -108,6 +103,9 @@ function JobPageContent() {
   if (!job) return null;
 
   const isProcessing = job.status === "queued" || job.status === "processing";
+  const downloadHref = token
+    ? `/api/jobs/${jobId}/download?token=${encodeURIComponent(token)}`
+    : `/api/jobs/${jobId}/download`;
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -179,7 +177,7 @@ function JobPageContent() {
 
           {job.status === "done" && (
             <a
-              href={`/api/jobs/${jobId}/download?token=${encodeURIComponent(token)}`}
+              href={downloadHref}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary inline-flex w-full sm:w-auto"

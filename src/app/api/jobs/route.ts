@@ -156,7 +156,6 @@ export async function GET(request: NextRequest) {
         targetFormat: true,
         createdAt: true,
         updatedAt: true,
-        accessToken: true,
       },
     });
 
@@ -168,7 +167,6 @@ export async function GET(request: NextRequest) {
         targetFormat: job.targetFormat,
         createdAt: job.createdAt.toISOString(),
         updatedAt: job.updatedAt.toISOString(),
-        accessToken: job.accessToken,
       })),
     });
   } catch (error) {

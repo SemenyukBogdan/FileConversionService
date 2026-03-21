@@ -10,7 +10,6 @@ type JobListItem = {
   targetFormat: string;
   createdAt: string;
   updatedAt: string;
-  accessToken: string;
 };
 
 export default function DashboardPage() {
@@ -164,7 +163,7 @@ export default function DashboardPage() {
             {jobs.map((job) => (
               <Link
                 key={job.jobId}
-                href={`/jobs/${job.jobId}?token=${encodeURIComponent(job.accessToken)}`}
+                href={`/jobs/${job.jobId}`}
                 className="block rounded-[var(--radius-md)] border p-4 transition-colors hover:bg-[var(--muted-bg)]/40"
                 style={{ borderColor: "var(--border)" }}
               >

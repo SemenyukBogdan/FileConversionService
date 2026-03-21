@@ -30,6 +30,7 @@ services:
       REDIS_URL: redis://redis:6379
       STORAGE_DRIVER: local
       STORAGE_PATH: /app/storage
+      TTL_HOURS: ${TTL_HOURS:-24}
     depends_on:
       db:
         condition: service_healthy
@@ -46,6 +47,7 @@ services:
       REDIS_URL: redis://redis:6379
       STORAGE_DRIVER: local
       STORAGE_PATH: /app/storage
+      TTL_HOURS: ${TTL_HOURS:-24}
     depends_on:
       db:
         condition: service_healthy

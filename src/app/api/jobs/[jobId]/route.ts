@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStorage } from "@/lib/storage";
+import { SESSION_COOKIE, verifySession } from "@/lib/auth";
 
-function verifyToken(job: { accessToken: string }, token: string | null): boolean {
+function getSessionUserId(request: NextRequest): string | null {
+  return verifySession(request.cookies.get(SESSION_COOKIE)?.value);
+}
+
+function canAccessJob(
+  request: NextRequest,
+  job: { accessToken: string; userId: string | null },
+  token: string | null
+): boolean {
+  // Auth-owned jobs are private and require matching session owner.
+  if (job.userId) {
+    const sessionUserId = getSessionUserId(request);
+    return !!sessionUserId && sessionUserId === job.userId;
+  }
+
+  // Guest-created jobs keep token-based access.
   return !!token && token === job.accessToken;
 }
 
@@ -21,7 +37,7 @@ export async function GET(
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
-  if (!verifyToken(job, token)) {
+  if (!canAccessJob(request, job, token)) {
     return NextResponse.json({ error: "Invalid token" }, { status: 403 });
   }
 
@@ -51,7 +67,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
-  if (!verifyToken(job, token)) {
+  if (!canAccessJob(request, job, token)) {
     return NextResponse.json({ error: "Invalid token" }, { status: 403 });
   }
 
