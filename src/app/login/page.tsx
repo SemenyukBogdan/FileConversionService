@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get("from") ?? "/dashboard";
+  const rawFrom = searchParams.get("from");
+  const from =
+    rawFrom && rawFrom.startsWith("/") && !rawFrom.startsWith("//")
+      ? rawFrom
+      : "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,8 +36,7 @@ function LoginForm() {
         return;
       }
 
-      router.push(from);
-      router.refresh();
+      window.location.assign(from);
     } catch {
       setError("Network error");
       setLoading(false);

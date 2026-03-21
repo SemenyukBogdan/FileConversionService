@@ -16,6 +16,7 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  jobs         ConversionJob[]
 
   @@index([email])
 }
@@ -45,9 +46,12 @@ model ConversionJob {
   resultSize         Int?
   errorCode          String?
   errorMessage       String?      @db.VarChar(500)
+  userId             String?
+  user               User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   accessToken        String
   expiresAt          DateTime
 
+  @@index([userId])
   @@index([expiresAt])
   @@index([status])
   @@index([createdAt])

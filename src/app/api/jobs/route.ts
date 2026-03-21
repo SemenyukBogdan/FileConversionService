@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStorage, generateStorageKey } from "@/lib/storage";
+import { SESSION_COOKIE, verifySession } from "@/lib/auth";
 import {
   validateDocumentConversion,
   sanitizeFilename,
@@ -12,6 +13,11 @@ import { DOCUMENT_FORMATS } from "@/lib/conversion-matrix";
 import { v4 as uuidv4 } from "uuid";
 
 const TTL_HOURS = parseInt(process.env.TTL_HOURS || "24", 10);
+
+function getAuthenticatedUserId(request: NextRequest): string | null {
+  const token = request.cookies?.get?.(SESSION_COOKIE)?.value;
+  return verifySession(token);
+}
 
 function getClientIp(request: NextRequest): string {
   return (
@@ -99,6 +105,7 @@ export async function POST(request: NextRequest) {
         sourceFormat,
         targetFormat,
         params: (params ?? undefined) as object | undefined,
+        userId: getAuthenticatedUserId(request) ?? undefined,
         accessToken,
         expiresAt,
       },
@@ -124,6 +131,48 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("POST /api/jobs error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const jobs = await prisma.conversionJob.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        status: true,
+        sourceFilename: true,
+        targetFormat: true,
+        createdAt: true,
+        updatedAt: true,
+        accessToken: true,
+      },
+    });
+
+    return NextResponse.json({
+      items: jobs.map((job) => ({
+        jobId: job.id,
+        status: job.status,
+        sourceFilename: job.sourceFilename,
+        targetFormat: job.targetFormat,
+        createdAt: job.createdAt.toISOString(),
+        updatedAt: job.updatedAt.toISOString(),
+        accessToken: job.accessToken,
+      })),
+    });
+  } catch (error) {
+    console.error("GET /api/jobs error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

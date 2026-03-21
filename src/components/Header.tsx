@@ -2,15 +2,32 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
-    fetch("/api/auth/session")
+    let cancelled = false;
+
+    fetch("/api/auth/session", { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => setAuthenticated(d.authenticated));
-  }, []);
+      .then((d) => {
+        if (!cancelled) {
+          setAuthenticated(Boolean(d.authenticated));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAuthenticated(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   async function handleSignOut() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -45,7 +62,7 @@ export function Header() {
           >
             Dashboard
           </Link>
-          {authenticated ? (
+          {authenticated === null ? null : authenticated ? (
             <button
               onClick={handleSignOut}
               className="btn-secondary text-sm"

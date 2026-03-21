@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 function RegisterForm() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,8 +28,7 @@ function RegisterForm() {
         return;
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      window.location.assign("/dashboard");
     } catch {
       setError("Network error");
       setLoading(false);
