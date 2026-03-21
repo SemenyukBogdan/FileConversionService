@@ -11,6 +11,28 @@ interface UploadZoneProps {
 
 export function UploadZone({ file, onFileChange, accept, maxSizeMB = 25 }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const maxBytes = maxSizeMB * 1024 * 1024;
+
+  const handleSelectFile = useCallback(
+    (candidate: File | null) => {
+      if (!candidate) {
+        onFileChange(null);
+        setError(null);
+        return;
+      }
+
+      if (candidate.size > maxBytes) {
+        onFileChange(null);
+        setError(`File is too large. Maximum size is ${maxSizeMB}MB.`);
+        return;
+      }
+
+      setError(null);
+      onFileChange(candidate);
+    },
+    [maxBytes, maxSizeMB, onFileChange]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -27,13 +49,14 @@ export function UploadZone({ file, onFileChange, accept, maxSizeMB = 25 }: Uploa
       e.preventDefault();
       setIsDragging(false);
       const dropped = e.dataTransfer.files[0];
-      if (dropped) onFileChange(dropped);
+      handleSelectFile(dropped ?? null);
     },
-    [onFileChange]
+    [handleSelectFile]
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFileChange(e.target.files?.[0] ?? null);
+    handleSelectFile(e.target.files?.[0] ?? null);
+    e.target.value = "";
   };
 
   return (
@@ -79,6 +102,11 @@ export function UploadZone({ file, onFileChange, accept, maxSizeMB = 25 }: Uploa
             </p>
           </div>
         </div>
+      )}
+      {error && (
+        <p className="mt-3 px-6 text-center text-sm" style={{ color: "var(--error)" }}>
+          {error}
+        </p>
       )}
     </label>
   );
